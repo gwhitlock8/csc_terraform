@@ -8,6 +8,9 @@ locals {
             subnet_purpose = x.subnet_purpose
         }
     }
+}
+
+locals {
     routeConfig = {
         for x in var.routes => {
             route_name = x.route_name
@@ -16,6 +19,8 @@ locals {
             route_priority = x.priority
         }
     }
+}
+locals {
     fwConfig = {
         for x in var.firewall_rules => {
             fw_name = x.fw_name
@@ -37,6 +42,9 @@ locals {
 
         }
     }
+}
+
+locals {
     computeConfig = {
         for x in var.compute_instances => {
             compute_name = x.instance_name
@@ -47,14 +55,8 @@ locals {
     }
 }
 
-locals {
-    subnets = flatten(local.subnetConfig)
-    routes = flatten(local.routeConfig)
-    fw_rules = flatten(local.fwConfig)
-    compute_instances = flatten(local.computeConfig)
 
-}
-
+//----------VPC-----------//
 
 resource "google_compute_network" "vpc_network" {
   project = var.project_id
@@ -63,6 +65,12 @@ resource "google_compute_network" "vpc_network" {
   mtu = var.mtu
   description = var.network_description
 
+}
+
+//----------SUBNETS-----------//
+
+locals {
+    subnets = flatten(local.subnetConfig)
 }
 
 resource "google_compute_subnetwork" "subnet" {
@@ -76,6 +84,12 @@ resource "google_compute_subnetwork" "subnet" {
     purpose = lookup(each.value, "subnet_purpose", null)
 }
 
+//----------ROUTES-----------//
+
+locals{
+    routes = flatten(local.routeConfig)
+}
+
 resource "google_compute_route" "route" {
     for_each = local.routes
 
@@ -84,6 +98,12 @@ resource "google_compute_route" "route" {
     network = google_compute_network.vpc_network.self_link
     next_hop_ip = lookup(each.value, "next_hop_ip", null)
     priority = lookup(each.value, "route_priority",100)
+}
+
+//----------FW RULES-----------//
+
+locals {
+    fw_rules = flatten(local.fwConfig)
 }
 
 resource "google_compute_firewall" "firewall_rule" {
@@ -114,6 +134,12 @@ resource "google_compute_firewall" "firewall_rule" {
             ports    = lookup(deny.value, "ports", null)
     }
   }
+}
+
+//----------COMPUTE INSTANCES-----------//
+
+locals {
+    compute_instances = flatten(local.computeConfig)
 }
 
 resource "google_compute_instance" "default" {
