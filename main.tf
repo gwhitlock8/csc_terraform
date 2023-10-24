@@ -8,29 +8,24 @@ locals {
             subnet_purpose = x.subnet_purpose
         }
     }
-}
-locals {
     routes = {
         for x in var.routes => {
             route_name = x.route_name
             dest_range = x.dest_range
             next_hop_ip = x.next_hop_ip
-            priority = x.priority
+            route_priority = x.priority
         }
     }
-}
-
-locals {
     fw_rules = {
         for x in var.firewall_rules => {
-            name = x.fw_name
-            description = x.fw_description
-            priority = x.priority
-            direction = x.direction
-            destination_ranges = x.destination_ranges
-            source_ranges = x.source_ranges
-            source_tags = x.source_tags
-            target_tags = x.target_tags
+            fw_name = x.fw_name
+            fw_description = x.fw_description
+            fw_priority = x.priority
+            fw_direction = x.direction
+            fw_destination_ranges = x.destination_ranges
+            fw_source_ranges = x.source_ranges
+            fw_source_tags = x.source_tags
+            fw_target_tags = x.target_tags
             allow = for y in x.allow => {
                 protocol = y.protocol
                 ports = y.ports
@@ -42,19 +37,22 @@ locals {
 
         }
     }
-}
-
-locals {
     compute_instances = {
         for x in var.compute_instances => {
-            name = x.instance_name
-            machine_type = x.machine_type
-            tags = [x.tags]
-            image = x.image
+            compute_name = x.instance_name
+            compute_machine_type = x.machine_type
+            compute_tags = x.tags
+            compute_image = x.image
         }
     }
 }
 
+locals {
+    subnets = flatten(local.subnetConfig)
+    routes = flatten(local.routeConfig)
+    fw_rules = flatten(local.fwConfig)
+    compute_instances = flatten(local.computeConfig)
+}
 
 resource "google_compute_network" "vpc_network" {
   project = var.project_id
@@ -68,36 +66,36 @@ resource "google_compute_network" "vpc_network" {
 resource "google_compute_subnetwork" "subnet" {
     for_each = local.subnets
 
-    name = each.value.subnet_name
-    ip_cidr_range = each.value.subnet_ip
+    name = lookup(each.value "subnet_name","default_subnet")
+    ip_cidr_range = lookup(each.value, "subnet_ip","default_subnet_cidr")
     network = google_compute_network.vpc_network.self_link
-    region = each.value.subnet_region
-    description = each.value.subnet_description
-    purpose = each.value.subnet_purpose
+    region = var.region
+    description = lookup(each.value, "subnet_description", null)
+    purpose = lookup(each.value, "subnet_purpose", null)
 }
 
 resource "google_compute_route" "route" {
     for_each = local.routes
 
-    name = each.value.route_name
+    name = lookup(each.value, "route_name", "default_route")
     dest_range = lookup(each.value, "destination_range", null)
     network = google_compute_network.vpc_network.self_link
     next_hop_ip = lookup(each.value, "next_hop_ip", null)
-    priority = each.value.priority
+    priority = lookup(each.value, "route_priority",100)
 }
 
 resource "google_compute_firewall" "firewall_rule" {
     for_each = local.fw_rules
 
-    name = each.value.name
-    description = each.value.description
+    name = lookup(each.value,"fw_name","fw_rule")
+    description = lookup(each.value, "fw_description", null)
     network = google_compute_network.vpc_network.self_link
-    priority = each.value.priority
-    direction = each.value.direction
-    destination_ranges = lookup(each.value, "destination_ranges", null)
-    source_ranges = lookup(each.value, "source_ranges", null)
-    source_tags = each.value.source_tags
-    target_tags = each.value.target_tags
+    priority = lookup(each.value, "fw_priority",100)
+    direction = lookup(each.value, "fw_direction", "INGRESS")
+    destination_ranges = lookup(each.value, "fw_destination_ranges", null)
+    source_ranges = lookup(each.value, "fw_source_ranges", null)
+    source_tags = lookup(each.value, "fw_source_tags",null)
+    target_tags = lookup(each.value, "fw_target_tags",null)
     
     dynamic "allow" {
         for_each = lookup(each.value, "allow", [])
@@ -119,13 +117,13 @@ resource "google_compute_firewall" "firewall_rule" {
 resource "google_compute_instance" "default" {
     for_each = local.compute_instances
 
-    name = each.value.name
-    machine_type = each.value.machine_type
+    name = lookup(each.value, "compute_name","compute_vm")
+    machine_type = lookup(each.value, "compute_machine_type", "n2-standard-4")
     tags = lookup(each.value,"tags", [])
 
     boot_disk {
         initialize_params {
-            image = each.value.image
+            image = lookup(each.value, "compute_image","ubuntu-pro-2004-lts")
         }
     }
 
