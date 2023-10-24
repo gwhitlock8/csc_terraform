@@ -36,6 +36,7 @@ locals {
             }
 
         }
+    }
     computeConfig = {
         for x in var.compute_instances => {
             name = x.instance_name
