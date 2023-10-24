@@ -1,5 +1,5 @@
 locals {
-    subnets = {
+    subnetConfig = {
         for x in var.subnets => {
             subnet_name = x.subnet_name
             subnet_ip = x.subnet_ip
@@ -8,9 +8,7 @@ locals {
             subnet_purpose = x.subnet_purpose
         }
     }
-}
-locals {
-    routes = {
+    routeConfig = {
         for x in var.routes => {
             route_name = x.route_name
             dest_range = x.dest_range
@@ -18,10 +16,7 @@ locals {
             priority = x.priority
         }
     }
-}
-
-locals {
-    fw_rules = {
+    fwConfig = {
         for x in var.firewall_rules => {
             name = x.fw_name
             description = x.fw_description
@@ -41,11 +36,7 @@ locals {
             }
 
         }
-    }
-}
-
-locals {
-    compute_instances = {
+    computeConfig = {
         for x in var.compute_instances => {
             name = x.instance_name
             machine_type = x.machine_type
@@ -53,6 +44,14 @@ locals {
             image = x.image
         }
     }
+}
+
+locals {
+    subnets = flatten(local.subnetConfig)
+    routes = flatten(local.routeConfig)
+    fw_rules = flatten(local.fwConfig)
+    compute_instances = flatten(local.computeConfig)
+
 }
 
 
