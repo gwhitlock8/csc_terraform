@@ -17,12 +17,13 @@ variable "zone" {
 variable "network_name" {
   description = "The name of the network being created"
   type        = string
+  default = "test"
 }
 
 variable "network_description" {
   type        = string
   description = "An optional description of this resource. The resource must be recreated to modify this field."
-  default     = ""
+  default     = "for testing"
 }
 
 variable "auto_create_subnetworks" {
