@@ -3,6 +3,7 @@
 variable "project_id" {
   description = "The ID of the project where this VPC will be created"
   type        = string
+  default = "silicon-comfort-386600"
 }
 
 variable "region" {
@@ -49,6 +50,13 @@ variable "subnets" {
 
   }))
   description = "The list of subnets being created"
+  default = [{
+    subnet_name = "test"
+    subnet_ip = "10.0.0.0/24"
+    subnet_region = "us-central1"
+    subnet_description = ""
+    subnet_purpose = ""
+  }]
 }
 
 //--------------ROUTES----------------//
@@ -61,6 +69,14 @@ variable "routes" {
         next_hop_ip = string
         priority = number
     }))
+
+    default = [{
+      route_name = "test"
+      dest_range = "10.10.0.0/24"
+      route_network = "google_cloud_network.vpc_network.self_link"
+      next_hop_ip = "10.0.0.96"
+      priority = 12
+    }]
 }
 
 
@@ -88,6 +104,26 @@ variable "firewall_rules" {
             ports    = optional(list(string))
         })), [])
     }))
+
+    default = [{
+      fw_name = "test"
+      fw_description = ""
+      priority = 12
+      direction = "EGRESS"
+      destination_ranges = ["10.10.0.0/24"]
+      source_ranges = ["10.0.0.0/24"]
+      source_tags = []
+      target_tags = []
+      allow = [{
+        protocol = "tcp"
+        ports = ["80","8080"]
+      }]
+      deny = [{
+        protocol = "ssh"
+        ports = ["22"]
+      }]
+
+    }]
 }
 
 //--------------COMPUTE INSTANCE----------------//
@@ -100,4 +136,12 @@ variable "compute_instances" {
         tags = optional(list(string))
         image = string
     }))
+
+    default = [{
+      compute_name = "test"
+      machine_type = "n2-standard-4"
+      instance_zone = "us-central1-a"
+      tags = ["test","another_test"]
+      image = "ubuntu-2004-focal-arm64-v20231023"
+    }]
 }
