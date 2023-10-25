@@ -106,25 +106,6 @@ variable "firewall_rules" {
         })), [])
     }))
 
-    default = [{
-      fw_name = "test"
-      fw_description = ""
-      priority = 12
-      direction = "EGRESS"
-      destination_ranges = ["10.10.0.0/24"]
-      source_ranges = ["10.0.0.0/24"]
-      source_tags = []
-      target_tags = []
-      allow = [{
-        protocol = "tcp"
-        ports = ["80","8080"]
-      }]
-      deny = [{
-        protocol = "ssh"
-        ports = ["22"]
-      }]
-
-    }]
 }
 
 //--------------COMPUTE INSTANCE----------------//
