@@ -5,9 +5,13 @@ variable "project_id" {
   type        = string
 }
 
-variable "region" {}
+variable "region" {
+  default = "us-central1"
+}
 
-variable "zone" {}
+variable "zone" {
+  default = "us-central1-a"
+}
 
 variable "network_name" {
   description = "The name of the network being created"
@@ -90,10 +94,10 @@ variable "firewall_rules" {
 
 variable "compute_instances" {
     type = list(object({
-        instance_name = string
+        compute_name = string
         machine_type = string
         instance_zone = string
-        tags = list(string)
+        tags = optional(list(string))
         image = string
     }))
 }
