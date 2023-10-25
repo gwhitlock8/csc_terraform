@@ -1,56 +1,55 @@
 locals {
-    subnetConfig = {
-        for x in var.subnets => {
-            subnet_name = x.subnet_name
-            subnet_ip = x.subnet_ip
-            subnet_region = x.subnet_region
-            subnet_description = x.subnet_description
-            subnet_purpose = x.subnet_purpose
+    subnets = {
+        for subnet in var.subnets:"subnet" => {
+            subnet_name = subnet.subnet_name,
+            subnet_ip = subnet.subnet_ip,
+            subnet_region = subnet.subnet_region,
+            subnet_description = subnet.subnet_description,
+            subnet_purpose = subnet.subnet_purpose,
         }
     }
 }
 
 locals {
-    routeConfig = {
-        for x in var.routes => {
-            route_name = x.route_name
-            dest_range = x.dest_range
-            next_hop_ip = x.next_hop_ip
-            route_priority = x.priority
+    routes = {
+        for route in var.routes:"route" => {
+            route_name = route.route_name,
+            dest_range = route.dest_range,
+            next_hop_ip = route.next_hop_ip,
+            route_priority = route.priority,
         }
     }
 }
 locals {
-    fwConfig = {
-        for x in var.firewall_rules => {
-            fw_name = x.fw_name
-            fw_description = x.fw_description
-            fw_priority = x.priority
-            fw_direction = x.direction
-            fw_destination_ranges = x.destination_ranges
-            fw_source_ranges = x.source_ranges
-            fw_source_tags = x.source_tags
-            fw_target_tags = x.target_tags
-            allow = for y in x.allow => {
-                protocol = y.protocol
-                ports = y.ports
-            }
-            deny = for z in x.deny => {
-                protocol = z.protocol
-                ports = z.ports
-            }
-
+    fw_rules = {
+        for fw in var.firewall_rules:fw => {
+            fw_name = fw.fw_name,
+            fw_description = fw.fw_description,
+            fw_priority = fw.priority,
+            fw_direction = fw.direction,
+            fw_destination_ranges = fw.destination_ranges,
+            fw_source_ranges = fw.source_ranges,
+            fw_source_tags = fw.source_tags,
+            fw_target_tags = fw.target_tags,
+            allow = {for allow in fw.allow:allow => {
+                protocol = allow.protocol,
+                ports = allow.ports
+            }},
+            deny = {for deny in fw.deny:deny => {
+                protocol = deny.protocol,
+                ports = deny.ports
+            }}
         }
     }
 }
 
 locals {
-    computeConfig = {
-        for x in var.compute_instances => {
-            compute_name = x.instance_name
-            compute_machine_type = x.machine_type
-            compute_tags = x.tags
-            compute_image = x.image
+    compute_instances = {
+        for compute in var.compute_instances:"compute" => {
+            compute_name = compute.compute_name,
+            compute_machine_type = compute.machine_type,
+            compute_tags = compute.tags,
+            compute_image = compute.image,
         }
     }
 }
@@ -69,14 +68,11 @@ resource "google_compute_network" "vpc_network" {
 
 //----------SUBNETS-----------//
 
-locals {
-    subnets = flatten(local.subnetConfig)
-}
 
 resource "google_compute_subnetwork" "subnet" {
     for_each = local.subnets
 
-    name = lookup(each.value "subnet_name","default_subnet")
+    name = lookup(each.value,"subnet_name","default_subnet")
     ip_cidr_range = lookup(each.value, "subnet_ip","default_subnet_cidr")
     network = google_compute_network.vpc_network.self_link
     region = var.region
@@ -86,15 +82,12 @@ resource "google_compute_subnetwork" "subnet" {
 
 //----------ROUTES-----------//
 
-locals{
-    routes = flatten(local.routeConfig)
-}
 
 resource "google_compute_route" "route" {
     for_each = local.routes
 
     name = lookup(each.value, "route_name", "default_route")
-    dest_range = lookup(each.value, "destination_range", null)
+    dest_range = lookup(each.value, "dest_range", null)
     network = google_compute_network.vpc_network.self_link
     next_hop_ip = lookup(each.value, "next_hop_ip", null)
     priority = lookup(each.value, "route_priority",100)
@@ -102,9 +95,6 @@ resource "google_compute_route" "route" {
 
 //----------FW RULES-----------//
 
-locals {
-    fw_rules = flatten(local.fwConfig)
-}
 
 resource "google_compute_firewall" "firewall_rule" {
     for_each = local.fw_rules
@@ -137,10 +127,6 @@ resource "google_compute_firewall" "firewall_rule" {
 }
 
 //----------COMPUTE INSTANCES-----------//
-
-locals {
-    compute_instances = flatten(local.computeConfig)
-}
 
 resource "google_compute_instance" "default" {
     for_each = local.compute_instances
