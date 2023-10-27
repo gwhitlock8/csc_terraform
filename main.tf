@@ -56,7 +56,7 @@ locals {
 
 provider "google" {
     credentials = file("credentials.json")
-    project = "${var.project_id}"
+    project = "${var.project}"
     region = "${var.region}"
     zone = "${var.zone}"
 }
@@ -65,7 +65,7 @@ provider "google" {
 //----------VPC-----------//
 
 resource "google_compute_network" "vpc_network" {
-  project = var.project_id
+  project = var.project
   name = var.network_name
   auto_create_subnetworks = var.auto_create_subnetworks
   mtu = var.mtu
