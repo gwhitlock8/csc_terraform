@@ -1,9 +1,7 @@
-//-------------NETWORK-----------------//
-
 variable "project_id" {
   description = "The ID of the project where this VPC will be created"
   type        = string
-  default = "silicon-comfort-386600"
+  default = "arvest-demo"
 }
 
 variable "region" {
@@ -13,6 +11,9 @@ variable "region" {
 variable "zone" {
   default = "us-central1-a"
 }
+
+
+//-------------NETWORK-----------------//
 
 variable "network_name" {
   description = "The name of the network being created"
