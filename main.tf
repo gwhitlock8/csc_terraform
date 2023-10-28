@@ -98,6 +98,9 @@ resource "google_compute_route" "route" {
     network = google_compute_network.vpc_network.self_link
     next_hop_ip = lookup(each.value, "next_hop_ip", null)
     priority = lookup(each.value, "route_priority",100)
+    depends_on = [
+        google_compute_subnetwork.subnet
+    ]
 }
 
 //----------FW RULES-----------//
