@@ -152,7 +152,7 @@ resource "google_compute_instance" "default" {
     }
 
     network_interface {
-        network = google_compute_network.vpc_network.self_link
+        network = "default"
     }
 }
 
