@@ -82,7 +82,7 @@ resource "google_compute_subnetwork" "subnet" {
     name = lookup(each.value,"subnet_name","default_subnet")
     ip_cidr_range = lookup(each.value, "subnet_ip","default_subnet_cidr")
     network = google_compute_network.vpc_network.self_link
-    region = var.region
+    region = lookup(each.value,"subnet_region","us-central1")
     description = lookup(each.value, "subnet_description", null)
     purpose = lookup(each.value, "subnet_purpose", null)
 }
