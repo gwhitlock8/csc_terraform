@@ -91,7 +91,7 @@ variable "firewall_rules" {
         fw_name = string
         fw_description = optional(string, null)
         priority = optional(number, null)
-        direction = string
+        direction = optional(string,"INGRESS")
         destination_ranges = optional(list(string), [])
         source_ranges = optional(list(string), [])
         source_tags = optional(list(string))
